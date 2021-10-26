@@ -1,4 +1,4 @@
-package myraft.core.node.rpc.message;
+package myraft.core.rpc.message;
 
 import myraft.core.node.NodeId;
 

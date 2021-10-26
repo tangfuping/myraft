@@ -1,4 +1,4 @@
-package myraft.core.node.schedule;
+package myraft.core.schedule;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

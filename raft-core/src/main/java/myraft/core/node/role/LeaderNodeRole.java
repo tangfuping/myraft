@@ -1,6 +1,6 @@
 package myraft.core.node.role;
 
-import myraft.core.node.schedule.LogReplicationTask;
+import myraft.core.schedule.LogReplicationTask;
 
 public class LeaderNodeRole extends AbstractNodeRole {
 

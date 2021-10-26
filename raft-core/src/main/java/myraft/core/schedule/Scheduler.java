@@ -1,4 +1,4 @@
-package myraft.core.node.schedule;
+package myraft.core.schedule;
 
 public interface Scheduler {
     // 创建日志复制定时任务

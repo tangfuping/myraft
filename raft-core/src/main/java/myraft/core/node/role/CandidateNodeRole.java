@@ -1,6 +1,6 @@
 package myraft.core.node.role;
 
-import myraft.core.node.schedule.ElectionTimeout;
+import myraft.core.schedule.ElectionTimeout;
 
 public class CandidateNodeRole extends AbstractNodeRole {
     private final int votesCount; // 票数

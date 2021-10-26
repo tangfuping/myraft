@@ -1,4 +1,4 @@
-package myraft.core.node.schedule;
+package myraft.core.schedule;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.*;

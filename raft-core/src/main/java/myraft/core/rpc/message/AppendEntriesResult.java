@@ -1,4 +1,4 @@
-package myraft.core.node.rpc.message;
+package myraft.core.rpc.message;
 
 public class AppendEntriesResult {
     private final int term;    // 选举term

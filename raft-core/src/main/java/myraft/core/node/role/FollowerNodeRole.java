@@ -1,7 +1,7 @@
 package myraft.core.node.role;
 
 import myraft.core.node.NodeId;
-import myraft.core.node.schedule.ElectionTimeout;
+import myraft.core.schedule.ElectionTimeout;
 
 public class FollowerNodeRole extends AbstractNodeRole {
     private final NodeId votedFor; // 投过票的节点，有可能为空
