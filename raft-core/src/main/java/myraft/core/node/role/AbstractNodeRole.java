@@ -1,6 +1,6 @@
 package myraft.core.node.role;
 
-abstract class AbstractNodeRole {
+public abstract class AbstractNodeRole {
     private final RoleName name;
     protected final int term;
 

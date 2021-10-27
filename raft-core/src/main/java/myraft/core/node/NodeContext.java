@@ -30,11 +30,7 @@ public class NodeContext {
         this.selfId = selfId;
     }
 
-    public NodeId getSelfId() {
-        return selfId;
-    }
-
-    public NodeGroup getGroup() {
+    public NodeGroup group() {
         return group;
     }
 
@@ -42,7 +38,7 @@ public class NodeContext {
         this.group = group;
     }
 
-    public Connector getConnector() {
+    public Connector connector() {
         return connector;
     }
 
@@ -50,7 +46,7 @@ public class NodeContext {
         this.connector = connector;
     }
 
-    public NodeStore getStore() {
+    public NodeStore store() {
         return store;
     }
 
@@ -58,7 +54,7 @@ public class NodeContext {
         this.store = store;
     }
 
-    public Scheduler getScheduler() {
+    public Scheduler scheduler() {
         return scheduler;
     }
 
@@ -66,7 +62,8 @@ public class NodeContext {
         this.scheduler = scheduler;
     }
 
-    public EventBus getEventBus() {
+
+    public EventBus eventBus() {
         return eventBus;
     }
 
@@ -74,11 +71,12 @@ public class NodeContext {
         this.eventBus = eventBus;
     }
 
-    public TaskExecutor getTaskExecutor() {
+    public TaskExecutor taskExecutor() {
         return taskExecutor;
     }
 
     public void setTaskExecutor(TaskExecutor taskExecutor) {
         this.taskExecutor = taskExecutor;
     }
+
 }
