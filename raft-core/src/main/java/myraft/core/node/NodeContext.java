@@ -79,4 +79,8 @@ public class NodeContext {
         this.taskExecutor = taskExecutor;
     }
 
+    public NodeEndpoint findMember(NodeId sourceNodeId) {
+        // TODO
+        return null;
+    }
 }

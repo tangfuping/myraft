@@ -1,12 +1,20 @@
 package myraft.core.node;
 
+import com.google.common.eventbus.Subscribe;
 import myraft.core.node.role.AbstractNodeRole;
+import myraft.core.node.role.CandidateNodeRole;
 import myraft.core.node.role.FollowerNodeRole;
 import myraft.core.node.role.RoleName;
 import myraft.core.node.store.NodeStore;
+import myraft.core.rpc.message.RequestVoteResult;
+import myraft.core.rpc.message.RequestVoteRpc;
+import myraft.core.rpc.message.RequestVoteRpcMessage;
 import myraft.core.schedule.ElectionTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.management.relation.Role;
+import java.util.Objects;
 
 /**
  * @author fptang
@@ -78,7 +86,84 @@ public class NodeImpl implements Node {
      * </p>
      */
     void electionTimeout() {
-        // TODO
+        context.taskExecutor().submit(this::doProcessElectionTimeout);
+    }
+
+    private void doProcessElectionTimeout() {
+        // Leader角色下不可能有选举超时
+        if (role.getName() == RoleName.LEADER) {
+            logger.warn("node {}, current role is leader, ignore election timeout", context.selfId());
+            return;
+        }
+        // 对于follower节点来说是发起选举
+        // 对于candidate节点来说是再次发起选举
+        // 选举term加2
+        int newTerm = role.getTerm() + 1;
+        role.cancelTimeoutOrTask();
+        logger.info("start election");
+        // 变成Candidate角色
+        changeToRole(new CandidateNodeRole(newTerm, scheduleElectionTimeout()));
+
+        // 发送RequestVote消息
+        RequestVoteRpc rpc = new RequestVoteRpc();
+        rpc.setTerm(newTerm);
+        rpc.setCandidateId(context.selfId());
+        rpc.setLastLogIndex(0);
+        rpc.setLastLogTerm(0);
+        context.connector().sendRequestVote(rpc, context.group().listEndpointOfMajorExceptSelf());
+    }
+
+    @Subscribe
+    public void onReceiveRequestVoteRpc(RequestVoteRpcMessage rpcMessage) {
+        context.taskExecutor().submit(
+                () -> context.connector().replyRequestVote(
+                        doProcessRequestVoteRpc(rpcMessage),
+                        // 发送消息的节点
+                        context.findMember(rpcMessage.getSourceNodeId())
+                )
+        );
+    }
+
+    private RequestVoteResult doProcessRequestVoteRpc(RequestVoteRpcMessage rpcMessage) {
+        // 如果对方的term比自己小，则不投票并且返回自己的term给对象
+        RequestVoteRpc rpc = rpcMessage.get();
+        if (rpc.getTerm() < role.getTerm()) {
+            logger.debug("term from rpc < cunrent term, don't vote ({} < {})",
+                    rpc.getTerm(), role.getTerm());
+            return new RequestVoteResult(role.getTerm(), false);
+        }
+        // 此次无条件投票
+        boolean voteForCandidate = true;
+
+        // 如果对象的term比自己大，则切换为Folower角色
+        if (rpc.getTerm() > role.getTerm()) {
+            becomeFollower(rpc.getTerm(), (voteForCandidate ? rpc.getCandidateId() : null), null, true);
+            return new RequestVoteResult(rpc.getTerm(), voteForCandidate);
+        }
+
+        // 本地的term与消息的term一致
+        switch (role.getName()) {
+            case FOLLOWER:
+                FollowerNodeRole follower = (FollowerNodeRole) role;
+                NodeId votedFor = follower.getVotedFor();
+                // 一下两种情况下投票
+                // case 1. 自己尚未投过票，并且对方的日志比自己新
+                // case 2. 自己已经给对方投过票
+                // 投票后需要切换为Follower角色
+                if ((votedFor == null && voteForCandidate) || // 情况1
+                        Objects.equals(votedFor, rpc.getCandidateId())) {    // 情况2
+                    becomeFollower(role.getTerm(), rpc.getCandidateId(), null, true);
+                    return new RequestVoteResult(role.getTerm(), false);
+                }
+            case CANDIDATE: // 已经给自己投过票， 所以不会给其他节点投票
+            case LEADER:
+                return new RequestVoteResult(role.getTerm(), false);
+            default:
+                throw new IllegalStateException("unexpected node role {" + role.getName() + "}");
+        }
+    }
+
+    private void becomeFollower(int term, NodeId nodeId, Object o, boolean b) {
     }
 
 
